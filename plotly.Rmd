@@ -15,6 +15,9 @@ library(p8105.datasets)
 
 library(plotly)
 ```
+Column {data-width=650}
+-----------------------------------------------------------------------
+
 
 Focus on Instacart data
 
@@ -27,6 +30,8 @@ instacart =
 
 ```
 
+Column {data-width=350}
+-----------------------------------------------------------------------
 
 ### Scatterplot
 
