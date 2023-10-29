@@ -1,0 +1,59 @@
+---
+title: "Plotly Dashboard"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+Making interactive plots!
+
+```{r load libraries}
+library(tidyverse)
+library(p8105.datasets)
+
+library(plotly)
+```
+
+Focus on Instacart data
+
+```{r import and filter data}
+data("instacart")
+
+instacart = 
+  instacart |> 
+  as_tibble() 
+
+```
+
+
+```{r scatterplot}
+instacart |> 
+  count(aisle) |> 
+  filter(n > 10000) |> 
+  mutate(text_label = str_c("Count", n, "\nAisle: ", aisle)) |> 
+  plot_ly(x = ~aisle, y = ~n, color = ~n, 
+          type = "scatter", mode = "markers")
+```
+
+```{r lineplot}
+instacart |> 
+  count(aisle) |> 
+  filter(n > 10000) |> 
+  mutate(text_label = str_c("Count", n, "\nAisle: ", aisle)) |> 
+  plot_ly(x = ~aisle, y = ~n, 
+          type = "scatter", mode = "lines") 
+
+```
+
+```{r bar chart}
+instacart |> 
+  count(aisle) |> 
+  mutate(aisle = fct_reorder(aisle, n)) |> 
+  plot_ly(x = ~aisle, y = ~n, color = ~aisle, type = "bar", colors = "viridis")
+```
+
+
+
+
+
