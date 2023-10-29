@@ -1,0 +1,217 @@
+---
+title: "p8105_hw3_nl2835"
+author: "Nancy Le"
+date: '`r format(Sys.time(), "%Y-%m-%d")`'
+output: github_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(ggridges)
+library(patchwork)
+
+library(p8105.datasets)
+
+knitr::opts_chunk$set(
+	echo = TRUE,
+	warning = FALSE,
+	fig.width = 8, 
+  fig.height = 6,
+  out.width = "90%"
+)
+
+theme_set(theme_minimal() + theme(legend.position = "bottom"))
+
+options(
+  ggplot2.continuous.colour = "viridis",
+  ggplot2.continuous.fill = "viridis"
+)
+
+scale_colour_discrete = scale_colour_viridis_d
+scale_fill_discrete = scale_fill_viridis_d
+```
+## Problem 1
+
+## Problem 2
+
+```{r brfss load}
+data("brfss_smart2010")
+```
+
+```{r clean data}
+brfss = brfss_smart2010 |> 
+  janitor::clean_names() |> 
+  filter(topic=="Overall Health") |> 
+  drop_na(response) |> 
+  mutate(response = as_factor(response)) |> 
+  mutate(locationdesc = substring(locationdesc, 5)) |> 
+  rename(county = locationdesc, state = locationabbr, response_prevalence = data_value)
+```
+
+```{r}
+states_seven_2002 = brfss |> 
+  filter(year=="2002") |> 
+  group_by(state) |> 
+  summarize(unique_counties = n_distinct(county)) |> 
+  filter(unique_counties >= 7)
+```
+
+```{r}
+states_seven_2010 = brfss |> 
+  filter(year=="2010") |> 
+  group_by(state) |> 
+  summarize(unique_counties = n_distinct(county)) |> 
+  filter(unique_counties >= 7)
+```
+
+
+#### 2002 - States >= 7 Locations
+```{r}
+library(knitr)
+kable(states_seven_2002)
+```
+
+In 2002, six states were observed at 7 or more locations (a unique location being a county): CT, FL, MA, NC, NJ, and PA.
+
+#### 2010 - States >= 7 Locations
+```{r}
+kable(states_seven_2010)
+```
+In 2010, fourteen states were observed at 7 or more locations (a unique location being a county): CA, CO, FL, MA, MD, NC, NE, NJ, NY, OH, PA, SC, TX, and WA.
+
+```{r excellent dataset}
+excellent = brfss |> 
+  filter(response == "Excellent") |> 
+  group_by(state, year) |> 
+  mutate(mean_response_prevalence = mean(response_prevalence, na.rm = TRUE)) |> 
+  select(year, state, mean_response_prevalence)
+```
+
+```{r excellent spaghetti plot}
+excellent |> 
+  ggplot(
+  aes(x = year, y = mean_response_prevalence, group = state, color = state)) + geom_line() +
+  labs(
+    title = "Spaghetti Plot of Mean Response Prevalence by State", 
+    x = "Year", 
+    y = "Response Prevalence"
+  )
+```
+
+The average response prevalence (data_value in the dataset) is the average % of responses across the 5 answer choices (excellent to poor). There is no distinguishable pattern across years; each state seems to have variation across years, with the average response prevalence around 25%. 
+
+```{r}
+nytwopanel = brfss |> 
+  filter(year == 2006 | year == 2010) |> 
+  filter(state == "NY")  |>  
+  group_by(state, year, county) 
+```
+
+
+```{r density plot}
+ggplot(nytwopanel, aes(x = response_prevalence, color = response, fill = response)) + 
+  geom_density(alpha = .5) + 
+  facet_grid(. ~ year) +
+  ggtitle("Response Distribution in NY")
+```
+
+This is a density plot showing the response distribution across all locations in NY. In 2006 and 2010, less than 10% of responses were "poor". In 2006 and 2010, most respondents across NY selected very good and good. 
+
+```{r scatter plot}
+ggplot(nytwopanel, aes(y = response_prevalence, x = response, color = county, group = county)) + 
+  geom_point(alpha = .5) + 
+  facet_grid(year ~ .) + 
+  ggtitle("Response Distribution by County")
+```
+This is a scatter plot showing the response distribution in NY, but grouped by county. The distributions are the same as described above, in the version where counties are collapsed into the larger state of NY. 
+
+## Problem 3
+
+```{r load mims}
+mims_demo = 
+  read_csv("./nhanes_covar.csv", skip = 4)
+
+mims_acc = 
+  read_csv("./nhanes_accel.csv") |> 
+  pivot_longer(
+    min1:min1440, 
+    names_to = "minute",
+    values_to = "MIMS_value") |> 
+  mutate(
+    minute = sub("min", "", minute)
+  ) 
+```
+
+```{r merge mims data}
+merged_mims = 
+  inner_join(mims_acc, mims_demo) |> 
+  filter(age>=21) |>
+  na.omit() |> 
+  mutate(
+    sex = case_when(
+      sex == 2 ~ "female",
+      sex == 1 ~ "male"), 
+    minute = as.numeric(minute), 
+    age = as.numeric(age),
+    education = case_when (
+      education == 1 ~ "Less than high school",
+      education == 2 ~ "High school equivalent",
+      education == 3 ~ "More than high school")) |> 
+  mutate(
+    education = factor(education, levels = c("Less than high school", "High school equivalent", "More than high school")))  
+  
+```
+
+
+```{r education by sex}
+merged_mims |> 
+  group_by(education, sex) |> 
+  summarize(count = n_distinct(SEQN)) |> 
+  knitr::kable(digits = 2)
+```
+
+Most respondents had an education of more than high school, with a roughly equal distribution of males and females across education levels.
+
+```{r age dist}
+ggplot(merged_mims, aes(x = age, color = sex, group = sex)) + 
+  geom_histogram(alpha = .5, binwidth=5) + 
+  facet_wrap(education ~ .) + 
+  ggtitle("Age Distribution by Sex") 
+  
+```
+
+The shape of the age distribution was roughly the same for both females and males for those with less than high school education, looking almost bimodal. For those with a high school equivalent, the female distribution skewed right, while the male distribution was roughly uniform. For those with education more than high school, the age distribution for females skewed more left than the distribution for males. There was also a greater absolute count of females with more than high school education as compared to males. 
+
+
+```{r total activity}
+mims_tot = merged_mims |>  
+  group_by(SEQN, sex) |> 
+  mutate(
+    total_act = sum(MIMS_value) 
+  ) 
+```
+
+```{r}
+mims_tot |> 
+  group_by(sex) |> 
+  ggplot(aes(x = age, y = total_act, color = sex)) +
+  geom_point() + 
+  geom_smooth() +
+  facet_wrap(. ~ education) + 
+  ggtitle("Total Activity by Age")
+```
+
+Total activity for all three education levels decreased with age, but was highest on average across ages for those with less than high school education. For those with a high school equivalent or more, females had higher total activity levels on average as compared to males. 
+
+```{r}
+mims_tot |> 
+  group_by(sex) |> 
+  ggplot(aes(x = minute, y = MIMS_value, color = sex)) +
+  geom_point(alpha = 0.3) + 
+  geom_smooth() +
+  facet_wrap(education ~ .) + 
+  ggtitle("Activity Over 24 Hours")
+```
+
+Over 24 hours, activity level showed the same patterns across education levels. There were peaks of activity in the morning seemingly when people woke up, which decreased throughout the day for those with a high school equivalent or less. For those with more than high school education, there were peaks of activity in the morning and in the evening hours (potentially from working a typical 8-4 am white collar work week).
+
