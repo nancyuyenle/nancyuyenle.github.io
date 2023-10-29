@@ -1,14 +1,15 @@
 ---
-title: "Plotly Dashboard"
+title: "Plotly"
 output: 
-  html_document:
-    toc: true
-    toc_float: true
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
 ---
 
 Making interactive plots!
 
-```{r load libraries}
+```{r load libraries, include=FALSE}
+library(flexdashboard)
 library(tidyverse)
 library(p8105.datasets)
 
@@ -27,6 +28,8 @@ instacart =
 ```
 
 
+### Scatterplot
+
 ```{r scatterplot}
 instacart |> 
   count(aisle) |> 
@@ -35,6 +38,8 @@ instacart |>
   plot_ly(x = ~aisle, y = ~n, color = ~n, 
           type = "scatter", mode = "markers")
 ```
+
+### Line Plot
 
 ```{r lineplot}
 instacart |> 
@@ -45,6 +50,8 @@ instacart |>
           type = "scatter", mode = "lines") 
 
 ```
+
+### Bar Chart
 
 ```{r bar chart}
 instacart |> 

@@ -8,3 +8,5 @@ output:
 
 # Hi! Welcome to my website! 
 
+
+I'm a second year MPH candidate at Columbia Mailman School of Public Health studying health policy!
