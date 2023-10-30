@@ -8,16 +8,18 @@ output:
 
 Making interactive plots!
 
-```{r load libraries, include=FALSE}
+```{r setup, include=FALSE}
 library(flexdashboard)
+```
+
+```{r load libraries, include=FALSE}
 library(tidyverse)
 library(p8105.datasets)
-
 library(plotly)
 ```
+
 Column {data-width=650}
 -----------------------------------------------------------------------
-
 
 Focus on Instacart data
 
@@ -30,8 +32,7 @@ instacart =
 
 ```
 
-Column {data-width=350}
------------------------------------------------------------------------
+
 
 ### Scatterplot
 
@@ -43,6 +44,9 @@ instacart |>
   plot_ly(x = ~aisle, y = ~n, color = ~n, 
           type = "scatter", mode = "markers")
 ```
+
+Column {data-width=350}
+-----------------------------------------------------------------------
 
 ### Line Plot
 
